@@ -159,6 +159,9 @@ if ( ! class_exists( 'Cntctfrm_Settings_Tabs' ) ) {
 					}
 				}
 
+				$this->options['display_popup'] = isset( $_POST['cntctfrm_display_popup'] ) ? 1 : 0;
+				$this->options['popup_timer']   = isset( $_POST['cntctfrm_popup_timer'] ) ? absint( $_POST['cntctfrm_popup_timer'] ) : 30;
+
 				$this->options['layout'] = ( isset( $_POST['cntctfrm_layout'] ) ) ? absint( $_POST['cntctfrm_layout'] ) : 1;
 
 				$layout_first_column_string = isset( $_POST['cntctfrm_layout_first_column'] ) ? sanitize_text_field( wp_unslash( $_POST['cntctfrm_layout_first_column'] ) ) : '';
@@ -292,6 +295,16 @@ if ( ! class_exists( 'Cntctfrm_Settings_Tabs' ) ) {
 					$this->options['display_coming_from'] = 1;
 					$this->options['display_user_agent']  = 1;
 				}
+				
+				$this->options['subject_pattern'] = array();
+				if ( isset( $_POST['cntctfrm_subject_pattern'] ) ) {
+					$cntctfrm_subject_pattern = array_map( 'sanitize_text_field', array_map( 'wp_unslash', $_POST['cntctfrm_subject_pattern'] ) );
+					foreach ( $cntctfrm_subject_pattern as $pattern ) {
+						if ( true === in_array( $pattern, array( 'numbers', 'symbols' ) ) ) {
+							$this->options['subject_pattern'][] = $pattern;
+						}
+					}
+				}				
 
 				$this->options['change_label']            = isset( $_POST['cntctfrm_change_label'] ) ? 1 : 0;
 				$this->options['change_label_in_email']   = isset( $_POST['cntctfrm_change_label_in_email'] ) ? 1 : 0;
@@ -1157,6 +1170,28 @@ if ( ! class_exists( 'Cntctfrm_Settings_Tabs' ) ) {
 			<?php } ?>
 			<table class="form-table" style="width:auto;">
 				<tr valign="top">
+					<th scope="row"><?php esc_html_e( 'Subject character pattern', 'contact-form-plugin' ); ?></th>
+					<td colspan="3">
+						<fieldset>
+							<label>
+								<input type='checkbox' <?php checked( true ); ?> <?php disabled( true ); ?> />
+								<?php esc_html_e( 'Letters', 'contact-form-plugin' ); ?>
+							</label>
+							<br />
+							<label>
+								<input type='checkbox' name='cntctfrm_subject_pattern[]' value='numbers' <?php checked( in_array( 'numbers', $this->options['subject_pattern'] ) ); ?> />
+								<?php esc_html_e( 'Numbers', 'contact-form-plugin' ); ?>
+							</label>
+							<br />
+							<label>
+								<input type='checkbox' name='cntctfrm_subject_pattern[]' value='symbols' <?php checked( in_array( 'symbols', $this->options['subject_pattern'] ) ); ?> />
+								<?php esc_html_e( 'Symbols', 'contact-form-plugin' ); ?>
+								<div class="bws_info" style="padding-left: 20px;"><?php esc_html_e( 'Visitor can use this symbols', 'contact-form-plugin' ); ?>: <code>!№;%:?*-</code></div>
+							</label>
+						</fieldset>
+					</td>
+				</tr>
+				<tr valign="top">
 					<th scope="row"><?php esc_html_e( 'Add to the form', 'contact-form-plugin' ); ?></th>
 					<td colspan="3"><fieldset>
 						<div id="cntctfrm-attachment-explanations" style="clear: both; <?php echo ! $this->options['attachment'] ? 'display:none;' : ''; ?>">
@@ -1677,8 +1712,24 @@ if ( ! class_exists( 'Cntctfrm_Settings_Tabs' ) ) {
 										</div>
 									</td>
 								</tr>
+								<tr valign="top" id="cntctfrm_popup">
+									<th scope="row"><?php esc_html_e( 'Display in popup', 'contact-form-plugin' ); ?></th>
+									<td colspan="2">
+										<label>
+											<input type="checkbox" name="cntctfrm_display_popup" id="cntctfrm_display_popup" value="1" <?php checked( $this->options['display_popup'] ); ?> />
+										</label>
+									</td>
+								</tr>
+								<tr valign="top" class="cntctfrm_popup_timer">
+									<th scope="row"><?php esc_html_e( 'Timer for popup', 'contact-form-plugin' ); ?></th>
+									<td colspan="2">
+										<label>
+											<input type="number" name="cntctfrm_popup_timer" value="<?php echo esc_attr( $this->options['popup_timer'] ); ?>" min="0" max="180" /> <?php esc_html_e( 'seconds', 'contact-form-plugin' ); ?><br />
+											<span class="bws_info"><?php esc_html_e( 'Time before contact form popup shows', 'contact-form-plugin' ); ?></span>
+										</label>
+									</td>
+								</tr>
 							</table>
-							<!-- pls -->
 							<?php if ( ! $this->hide_pro_tabs ) { ?>
 								<div class="bws_pro_version_bloc">
 									<div class="bws_pro_version_table_bloc">
@@ -1924,7 +1975,6 @@ if ( ! class_exists( 'Cntctfrm_Settings_Tabs' ) ) {
 									<?php $this->bws_pro_block_links(); ?>
 								</div>
 							<?php } ?>
-							<!-- end pls -->
 						</div>
 						<div id="<?php echo is_rtl() ? 'cntctfrm_left_table' : 'cntctfrm_right_table'; ?>">
 							<h3><?php esc_html_e( 'Contact Form | Preview', 'contact-form-plugin' ); ?></h3>
@@ -2251,25 +2301,27 @@ if ( ! class_exists( 'Cntctfrm_Settings_Tabs' ) ) {
 														<?php
 														break;
 													case 'cntctfrm_contact_esign':
-														?>
-														<li class="cntctfrm_field_wrap">
-															<div class="cntctfrm_label cntctfrm_label_esign">
-																<label for="cntctfrm_contact_esign">
-																<?php
-																echo esc_html( $this->options['esign_label']['default'] );
-																if ( 1 === absint( $this->options['required_esign'] ) ) {
-																	echo '<span class="required"> ' . esc_attr( $this->options['required_symbol'] ) . '</span>';
-																}
-																?>
-																</label>
-															</div>
-															<div class="cntctfrm_error_text hidden"><?php echo esc_html( $this->options['esign_error']['default'] ); ?></div>
-															<div class="cntctfrm_input cntctfrm_input_esign">
-																<div class="cntctfrm_drag_wrap"></div>
-																<div class="bws_no_bind_notice" id="cntctfrm_contact_esign"><input type="hidden" name="cntctfrm_contact_esign" /></div>
-															</div>
-														</li>
-														<?php
+														if ( 1 === absint( $this->options['display_esign'] ) ) {
+															?>
+															<li class="cntctfrm_field_wrap">
+																<div class="cntctfrm_label cntctfrm_label_esign">
+																	<label for="cntctfrm_contact_esign">
+																	<?php
+																	echo esc_html( $this->options['esign_label']['default'] );
+																	if ( 1 === absint( $this->options['required_esign'] ) ) {
+																		echo '<span class="required"> ' . esc_attr( $this->options['required_symbol'] ) . '</span>';
+																	}
+																	?>
+																	</label>
+																</div>
+																<div class="cntctfrm_error_text hidden"><?php echo esc_html( $this->options['esign_error']['default'] ); ?></div>
+																<div class="cntctfrm_input cntctfrm_input_esign">
+																	<div class="cntctfrm_drag_wrap"></div>
+																	<div class="bws_no_bind_notice" id="cntctfrm_contact_esign"><input type="hidden" name="cntctfrm_contact_esign" /></div>
+																</div>
+															</li>
+															<?php
+														}
 														break;
 													default:
 														break;

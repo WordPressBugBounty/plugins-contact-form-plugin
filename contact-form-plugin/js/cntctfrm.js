@@ -18,5 +18,13 @@
 				}
 			});
 		}).trigger( 'resize' );
+		if ( 1 == parseInt( cntctfrm_object.display_popup ) && 0 < parseInt( cntctfrm_object.popup_timer ) && '1' != cntctfrm_object.cntctfrm_result ) {
+			setTimeout( function(){
+				$( '.cntctfrm-popup-overflow' ).show();
+			}, parseInt( cntctfrm_object.popup_timer ) * 1000 );			
+		}
+		$( '.cntctfrm-popup-close' ).on( 'click touch', function(){
+			$( '.cntctfrm-popup-overflow' ).hide();
+		});
 	});
 })(jQuery);

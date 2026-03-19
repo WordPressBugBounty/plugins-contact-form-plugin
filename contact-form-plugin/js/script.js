@@ -8,6 +8,14 @@
 			}
 		} ).trigger( 'change' );
 
+		$( '#cntctfrm_display_popup' ).on( 'change', function() {
+			if( $( this).is( ':checked' ) ) {
+				$( '.cntctfrm_popup_timer' ).show();
+			} else {
+				$( '.cntctfrm_popup_timer' ).hide();
+			}
+		} ).trigger( 'change' );
+
 		$( '#cntctfrm_show_multi_notice' ).removeAttr('href title').css('cursor', 'pointer');
 
 		$( '#cntctfrm_change_label' ).change( function() {

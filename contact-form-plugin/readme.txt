@@ -4,7 +4,7 @@ Donate link: https://bestwebsoft.com/donate/
 Tags: wp contact form, contact widget, shortcode contact form, contact button, contact page
 Requires at least: 6.5
 Tested up to: 6.9
-Stable tag: 4.3.6
+Stable tag: 4.3.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -77,6 +77,7 @@ https://www.youtube.com/watch?v=F_piQa0hmkU
 * Extended Form Fields - Enable additional pre-built form elements
 * E-sign Form Field - Enable sign form element
 * Two-Column Layout Option - Create professional multi-column forms
+* Contact Form display in popup
 * Custom Form Width - Adjust form width to match your design
 * Drag & Drop Field Order - Easily reorganize form fields
 * Multi-Language Support - Translate forms using the built-in language customizer
@@ -116,6 +117,7 @@ https://www.youtube.com/watch?v=F_piQa0hmkU
 >     * No-code style customization
 >     * Complete alignment control
 >     * Custom submit button design
+> * Enable animation for popup
 > * Enhanced User Experience - Customizable tooltips and placeholders
 > * Priority Support - Get answers within one business day ([Support Policy](https://bestwebsoft.com/support-policy/))
 >
@@ -330,6 +332,11 @@ Please make sure that the problem hasn't been discussed yet on our forum (<https
 16. Enable the file multiattachment option to get important files from senders via contact form.
 
 == Changelog ==
+
+= V4.3.7 - 19.03.2026 =
+* Update : All functionality was updated for WordPress 6.9.1.
+* NEW : Display in popup has been added.
+* PRO : Popup animation and display popup on scroll has been added.
 
 = V4.3.6 - 25.12.2025 =
 * Update : All functionality was updated for WordPress 6.9.
@@ -749,6 +756,11 @@ Please make sure that the problem hasn't been discussed yet on our forum (<https
 * NEW : You can use JavaScript for the form validation with highlighting option
 
 == Upgrade Notice ==
+
+= V4.3.6 =
+* The compatibility with new WordPress version updated.
+* New features added.
+* Bugs fixed.
 
 = V4.3.6 =
 * The compatibility with new WordPress version updated.

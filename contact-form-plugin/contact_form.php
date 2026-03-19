@@ -6,7 +6,7 @@ Description: Simple contact form plugin any WordPress website must have.
 Author: BestWebSoft
 Text Domain: contact-form-plugin
 Domain Path: /languages
-Version: 4.3.6
+Version: 4.3.7
 Author URI: https://bestwebsoft.com/
 License: GPLv2 or later
  */
@@ -93,10 +93,10 @@ if ( ! function_exists( 'cntctfrm_init' ) ) {
 		global $cntctfrm_plugin_info, $cntctfrm_result, $cntctfrm_form_count;
 
 		$form_submited = isset( $_POST['cntctfrm_form_submited'] ) ? sanitize_key( $_POST['cntctfrm_form_submited'] ) : 0;
-		if ( true === $cntctfrm_result && $cntctfrm_form_count === $form_submited ) {
+		if ( $form_submited > 0 && true === $cntctfrm_result && $cntctfrm_form_count === $form_submited ) {
 			setcookie( 'cntctfrm_send_mail', true, time() + 60, COOKIEPATH, COOKIE_DOMAIN );
 		}
-		if ( true !== $cntctfrm_result || $cntctfrm_form_count !== $form_submited ) {
+		if ( $form_submited > 0 && ( true !== $cntctfrm_result || $cntctfrm_form_count !== $form_submited ) ) {
 			setcookie( 'cntctfrm_send_mail', false, time() - 60, COOKIEPATH, COOKIE_DOMAIN );
 		}
 
@@ -665,7 +665,10 @@ if ( ! function_exists( 'cntctfrm_get_option_defaults' ) ) {
 			'display_dropdown'        => 0,
 			'required_dropdown'       => 0,
 			'display_esign'           => 0,
-			'required_esign'          => 0
+			'required_esign'          => 0,
+			'display_popup'           => 0,
+			'popup_timer'             => 30,
+			'subject_pattern'         => array(),
 		);
 		$option_defaults = apply_filters( 'cntctfrm_get_additional_options_default', $option_defaults );
 
@@ -1019,6 +1022,13 @@ if ( ! function_exists( 'cntctfrm_display_form' ) ) {
 
 		if ( ! wp_script_is( 'cntctfrm_frontend_script', 'registered' ) ) {
 			wp_register_script( 'cntctfrm_frontend_script', plugins_url( 'js/cntctfrm.js', __FILE__ ), array( 'jquery' ), $cntctfrm_plugin_info['Version'], true );
+			wp_localize_script( 'cntctfrm_frontend_script', 'cntctfrm_object',
+				array( 
+					'display_popup'   => $cntctfrm_options['display_popup'],
+					'popup_timer'     => $cntctfrm_options['popup_timer'],
+					'cntctfrm_result' => isset( $cntctfrm_result ) ? 1 : -1
+				)
+			);
 		}
 
 		$cntctfrm_form_count = empty( $cntctfrm_form_count ) ? 1 : ++$cntctfrm_form_count;
@@ -1158,7 +1168,7 @@ if ( ! function_exists( 'cntctfrm_display_form' ) ) {
 									$content .= '<div class="cntctfrm_error_text">' . $cntctfrm_error_message['error_address'] . '</div>';
 								}
 								$content .= '<div class="cntctfrm_input cntctfrm_input_address">
-									<input class="text" type="text" size="40" pattern="([\p{L}\p{M}\s0-9]){1,120}" title="' . __( 'Please enter only letters and numbers at least 3 characters, words seperated by spaces', 'contact-form-plugin' ) . '" value="' . esc_html( $address ) . '" name="cntctfrm_contact_address" id="cntctfrm_contact_address' . $form_countid . '" />';
+									<input class="text" type="text" size="40" pattern="([\p{L}\p{M}\s0-9]){3,120}" title="' . __( 'Please enter only letters and numbers at least 3 characters, words seperated by spaces', 'contact-form-plugin' ) . '" value="' . esc_html( $address ) . '" name="cntctfrm_contact_address" id="cntctfrm_contact_address' . $form_countid . '" />';
 								$content .= '</div>';
 								$content .= '</div>';
 							}
@@ -1199,8 +1209,28 @@ if ( ! function_exists( 'cntctfrm_display_form' ) ) {
 							if ( isset( $cntctfrm_error_message['error_subject'] ) && $cntctfrm_form_count === $form_submited ) {
 								$content .= '<div class="cntctfrm_error_text">' . $cntctfrm_error_message['error_subject'] . '</div>';
 							}
+							$pattern = '^\p{L}{1,}([\p{L}\s';
+							$pattern_text = __( 'letters', 'contact-form-plugin' );
+							if ( isset( $cntctfrm_options['subject_pattern'] ) && ! empty( $cntctfrm_options['subject_pattern'] ) ) {
+								$pattern_text .= ' (' . __( 'first of all', 'contact-form-plugin' ) . ')';
+								foreach( $cntctfrm_options['subject_pattern'] as $subject_pattern ) {
+									switch ( $subject_pattern ) {
+										case 'numbers':
+											$pattern .= '0-9';
+											$pattern_text .= ', ' . __( 'numbers', 'contact-form-plugin' );
+											break;
+										case 'symbols':
+											$pattern .= '!№;%:\?\*\-#';
+											$pattern_text .= ', '.  __( 'symbols', 'contact-form-plugin' ) . ' !№;%:?*-#';
+											break;
+										default:
+											break;
+									}
+								}
+							}
+							$pattern .= ']){2,}';
 							$content .= '<div class="cntctfrm_input cntctfrm_input_subject">
-								<input ' . apply_filters( 'cntctfrm_readonly', 'subject' ) . ' pattern="^([\p{M}\p{L}]{1,}(\s\p{M}*\p{L}+-*)*){3,}" title="' . __( 'Please enter only letters at least 3 characters, words seperated by spaces', 'contact-form-plugin' ) . '" class="text" type="text" size="40" value="' . esc_html( $subject ) . '" name="cntctfrm_contact_subject" id="cntctfrm_contact_subject' . $form_countid . '" />';
+								<input ' . apply_filters( 'cntctfrm_readonly', 'subject' ) . ' pattern="' . $pattern . '" title="' . sprintf( __( 'Please enter only %s at least 3 characters, words seperated by spaces', 'contact-form-plugin' ), $pattern_text ) . '" class="text" type="text" size="40" value="' . esc_html( $subject ) . '" name="cntctfrm_contact_subject" id="cntctfrm_contact_subject' . $form_countid . '" />';
 							$content .= '</div>';
 							$content .= '</div>';
 							break;
@@ -1641,7 +1671,7 @@ if ( ! function_exists( 'cntctfrm_check_form' ) ) {
 		if ( 1 === absint( $cntctfrm_options['display_name_field'] ) && 1 === absint( $cntctfrm_options['required_name_field'] ) && '' !== $name ) {
 			unset( $cntctfrm_error_message['error_name'] );
 		}
-		if ( 1 === absint( $cntctfrm_options['display_address_field'] ) && 1 === absint( $cntctfrm_options['required_address_field'] ) && '' !== $address ) {
+		if ( 1 === absint( $cntctfrm_options['display_address_field'] ) && 1 === absint( $cntctfrm_options['required_address_field'] ) && '' !== $address && 3 <= strlen( $address )  ) {
 			unset( $cntctfrm_error_message['error_address'] );
 		}
 		if ( 1 === absint( $cntctfrm_options['required_email_field'] ) && '' !== $email && is_email( trim( wp_unslash( $email ) ) ) ) {
@@ -2416,7 +2446,7 @@ if ( ! function_exists( 'cntctfrm_admin_head' ) ) {
 				wp_enqueue_script( 'jquery-touch-punch' );
 			}
 
-			wp_enqueue_script( 'cntctfrm_script', plugins_url( 'js/script.js', __FILE__ ), array( 'jquery', 'jquery-ui-sortable' ), $cntctfrm_plugin_info['Version'], true );
+			wp_enqueue_script( 'cntctfrm_script', plugins_url( 'js/script.js', __FILE__ ), array( 'jquery', 'jquery-ui-sortable' ), $cntctfrm_plugin_info['Version'] . '.1', true );
 			wp_localize_script( 'cntctfrm_script', 'cntctfrm_ajax', $script_vars );
 			do_action( 'cntctfrm_custom_enqueue_script' );
 
@@ -2483,7 +2513,15 @@ if ( ! function_exists( 'cntctfrm_wp_footer' ) ) {
 	 * Add script for frontend
 	 */
 	function cntctfrm_wp_footer() {
-		global $cntctfrm_form_count, $cntctfrm_stile_options, $cntctfrm_plugin_info;
+		global $cntctfrm_form_count, $cntctfrm_stile_options, $cntctfrm_plugin_info, $cntctfrm_options, $cntctfrm_result;
+
+		if ( 1 === $cntctfrm_options['display_popup'] ) {
+			$display = ' style="display: none;"';
+			if ( 0 === $cntctfrm_options['popup_timer'] || true === $cntctfrm_result || false === $cntctfrm_result ) {
+				$display = '';
+			}
+			echo '<div class="cntctfrm-popup-overflow"' . $display . '><div class="cntctfrm-popup-wrapper">' . cntctfrm_display_form() . '<div class="cntctfrm-popup-close"><svg class="ays_pb_material_close_icon" xmlns="https://www.w3.org/2000/svg" height="36px" viewBox="0 0 24 24" width="36px" fill="#000000" alt="Pop-up Close"><path d="M0 0h24v24H0z" fill="none"></path><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg></div></div></div>';
+		}
 
 		if ( wp_script_is( 'cntctfrm_frontend_script', 'registered' ) ) {
 			wp_enqueue_script( 'cntctfrm_frontend_script' );
@@ -2502,6 +2540,7 @@ if ( ! function_exists( 'cntctfrm_wp_footer' ) ) {
 				<?php
 			}
 		}
+
 	}
 }
 
@@ -2512,6 +2551,10 @@ if ( ! function_exists( 'cntctfrm_add_language' ) ) {
 	function cntctfrm_add_language() {
 		global $cntctfrm_lang_codes;
 		$is_ajax = defined( 'DOING_AJAX' ) && DOING_AJAX;
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return false;
+		}
 
 		if ( $is_ajax ) {
 			check_ajax_referer( plugin_basename( __FILE__ ), 'cntctfrm_ajax_nonce_field' );
@@ -2574,6 +2617,11 @@ if ( ! function_exists( 'cntctfrm_remove_language' ) ) {
 	 */
 	function cntctfrm_remove_language() {
 		$is_ajax = defined( 'DOING_AJAX' ) && DOING_AJAX;
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return false;
+		}
+
 		if ( $is_ajax ) {
 			check_ajax_referer( plugin_basename( __FILE__ ), 'cntctfrm_ajax_nonce_field' );
 		} else {

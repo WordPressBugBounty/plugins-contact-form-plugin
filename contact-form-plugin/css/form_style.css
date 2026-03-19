@@ -152,6 +152,9 @@
 	float: right;
 	width: 49%;
 }
+.cntctfrm_one_column .cntctfrm_column {
+	width: 100%;
+}
 .cntctfrm_ltr.cntctfrm_two_columns.cntctfrm_width_default #cntctfrm_first_column,
 .cntctfrm_ltr.cntctfrm_two_columns.cntctfrm_width_default #cntctfrm_submit_first_column {
 	margin: 0 10px 0 0;
@@ -192,4 +195,31 @@ div[id^='cntctfrm_esign_signature'] canvas {
 	width: 25px;
 	height: 25px;
 	font-size: 25px;
+}
+
+.cntctfrm-popup-overflow {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba( 0, 0, 0, 0.4 );
+	display: flex;
+	justify-content: center;
+	align-items: center; 
+}
+.cntctfrm-popup-wrapper {
+	background-color: white;
+	padding: 20px;
+	position: relative;
+	border-radius: 15px;
+}
+.cntctfrm-popup-close {
+	width: 36px;
+	height: 36px;
+	cursor: pointer;
+	position: absolute;
+	top: -18px;
+	right: -36px;
+	color: white;
 }
