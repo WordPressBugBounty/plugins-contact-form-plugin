@@ -6,7 +6,7 @@ Description: Simple contact form plugin any WordPress website must have.
 Author: BestWebSoft
 Text Domain: contact-form-plugin
 Domain Path: /languages
-Version: 4.3.7
+Version: 4.3.9
 Author URI: https://bestwebsoft.com/
 License: GPLv2 or later
  */
@@ -628,6 +628,7 @@ if ( ! function_exists( 'cntctfrm_get_option_defaults' ) ) {
 			'captcha_error'           => array( 'default' => __( 'Please fill out the CAPTCHA.', 'contact-form-plugin' ) ),
 			'dropdown_error'          => array( 'default' => __( 'This field is required.', 'contact-form-plugin' ) ),
 			'esign_error'             => array( 'default' => __( 'This field is required.', 'contact-form-plugin' ) ),
+			'non_latin_error'         => array( 'default' => __( 'Only Latin characters permitted.', 'contact-form-plugin' ) ),
 			'form_error'              => array( 'default' => __( 'Please make corrections below and try again.', 'contact-form-plugin' ) ),
 			'send_copy_label'         => array( 'default' => __( 'Send me copy.', 'contact-form-plugin' ) ),
 			'action_after_send'       => 1,
@@ -669,6 +670,7 @@ if ( ! function_exists( 'cntctfrm_get_option_defaults' ) ) {
 			'display_popup'           => 0,
 			'popup_timer'             => 30,
 			'subject_pattern'         => array(),
+			'block_non_latin'         => 0,
 		);
 		$option_defaults = apply_filters( 'cntctfrm_get_additional_options_default', $option_defaults );
 
@@ -1130,7 +1132,11 @@ if ( ! function_exists( 'cntctfrm_display_form' ) ) {
 			$content .= ' action="' . $page_url . $form_countid . '" enctype="multipart/form-data">';
 			if ( isset( $cntctfrm_error_message['error_form'] ) && $cntctfrm_form_count === $form_submited ) {
 				$content .= '<div class="cntctfrm_error_text">' . ( isset( $cntctfrm_result['error_lmtttmpts'] ) ? $cntctfrm_result['error_lmtttmpts'] : $cntctfrm_error_message['error_form'] ) . '</div>';
+				if ( isset( $cntctfrm_error_message['error_non_latin'] ) ) {
+					$content .= '<div class="cntctfrm_error_text">' . $cntctfrm_error_message['error_non_latin'] . '</div>';
+				}
 			}
+
 			if ( ! isset( $id ) ) {
 				$cntctfrm_ordered_fields = cntctfrm_get_ordered_fields();
 			} else {
@@ -1667,6 +1673,14 @@ if ( ! function_exists( 'cntctfrm_check_form' ) ) {
 			);
 			$cntctfrm_error_message['error_attachment'] = $cntctfrm_options['attachment_error'][ $language ];
 		}
+		if ( 1 === $cntctfrm_options['block_non_latin'] ) {
+			$message_result = ! empty( $message ) ? preg_match( '/^[\p{Latin}\p{Common}]+$/u', $message ) : 1;
+			$subject_result = ! empty( $subject ) ? preg_match( '/^[\p{Latin}\p{Common}]+$/u', $subject ) : 1;
+			if ( 1 !== $message_result || 1 !== $subject_result ) {
+				$cntctfrm_error_message['error_non_latin'] = $cntctfrm_options['non_latin_error'][ $language ];
+			}
+		}
+
 		/* Check information wich was input in fields */
 		if ( 1 === absint( $cntctfrm_options['display_name_field'] ) && 1 === absint( $cntctfrm_options['required_name_field'] ) && '' !== $name ) {
 			unset( $cntctfrm_error_message['error_name'] );

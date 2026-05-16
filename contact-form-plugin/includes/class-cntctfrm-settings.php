@@ -209,6 +209,7 @@ if ( ! class_exists( 'Cntctfrm_Settings_Tabs' ) ) {
 				$this->options['message_limit']           = isset( $_POST['cntctfrm_message_limit'] ) ? 1 : 0;
 				$this->options['message_limit_min']       = isset( $_POST['cntctfrm_message_limit_min'] ) && ! empty( $_POST['cntctfrm_message_limit_min'] ) ? absint( $_POST['cntctfrm_message_limit_min'] ) : '';
 				$this->options['message_limit_max']       = isset( $_POST['cntctfrm_message_limit_max'] ) && ! empty( $_POST['cntctfrm_message_limit_max'] ) ? absint( $_POST['cntctfrm_message_limit_max'] ) : '';
+				$this->options['block_non_latin']         = isset( $_POST['cntctfrm_block_non_latin'] ) ? 1 : 0;
 
 				if ( 1 === $this->options['message_limit'] && empty( $this->options['message_limit_min'] ) && empty( $this->options['message_limit_max'] ) ) {
 					$error .= __( 'Min / Max symbols in the message cannot be empty.', 'contact-form-plugin' );
@@ -350,6 +351,7 @@ if ( ! class_exists( 'Cntctfrm_Settings_Tabs' ) ) {
 						$this->options['captcha_error'][ $key ]           = isset( $_POST['cntctfrm_captcha_error'][ $key ] ) ? sanitize_text_field( wp_unslash( $_POST['cntctfrm_captcha_error'][ $key ] ) ) : '';
 						$this->options['dropdown_error'][ $key ]          = isset( $_POST['cntctfrm_dropdown_error'][ $key ] ) ? sanitize_text_field( wp_unslash( $_POST['cntctfrm_dropdown_error'][ $key ] ) ) : '';
 						$this->options['esign_error'][ $key ]             = isset( $_POST['cntctfrm_esign_error'][ $key ] ) ? sanitize_text_field( wp_unslash( $_POST['cntctfrm_esign_error'][ $key ] ) ) : '';
+						$this->options['non_latin_error'][ $key ]         = isset( $_POST['cntctfrm_non_latin_error'][ $key ] ) ? sanitize_text_field( wp_unslash( $_POST['cntctfrm_non_latin_error'][ $key ] ) ) : '';
 						$this->options['form_error'][ $key ]              = isset( $_POST['cntctfrm_form_error'][ $key ] ) ? sanitize_text_field( wp_unslash( $_POST['cntctfrm_form_error'][ $key ] ) ) : '';
 					}
 				} else {
@@ -385,6 +387,7 @@ if ( ! class_exists( 'Cntctfrm_Settings_Tabs' ) ) {
 						$this->options['captcha_error']           = $option_defaults['captcha_error'];
 						$this->options['dropdown_error']          = $option_defaults['dropdown_error'];
 						$this->options['esign_error']             = $option_defaults['esign_error'];
+						$this->options['non_latin_error']         = $option_defaults['non_latin_error'];
 						$this->options['form_error']              = $option_defaults['form_error'];
 						foreach ( $this->options['thank_text'] as $key => $val ) {
 							$this->options['thank_text'][ $key ] = sanitize_textarea_field( wp_unslash( $val ) );
@@ -418,6 +421,7 @@ if ( ! class_exists( 'Cntctfrm_Settings_Tabs' ) ) {
 						$this->options['captcha_error']['default']           = $option_defaults['captcha_error']['default'];
 						$this->options['dropdown_error']['default']          = $option_defaults['dropdown_error']['default'];
 						$this->options['esign_error']['default']             = $option_defaults['esign_error']['default'];
+						$this->options['non_latin_error']['default']         = $option_defaults['non_latin_error']['default'];
 						$this->options['form_error']['default']              = $option_defaults['form_error']['default'];
 
 						foreach ( $_POST['cntctfrm_thank_text'] as $key => $val ) {
@@ -1391,6 +1395,13 @@ if ( ! class_exists( 'Cntctfrm_Settings_Tabs' ) ) {
 					<td colspan="2"><input type="checkbox" name="cntctfrm_html_email" value="1" <?php checked( '1', $this->options['html_email'] ); ?> /></td>
 				</tr>
 				<tr valign="top">
+					<th scope="row"><?php esc_html_e( 'Block Non-Latin Characters', 'contact-form-plugin' ); ?></th>
+					<td colspan="2">
+						<input type="checkbox" name="cntctfrm_block_non_latin" value="1" <?php checked( '1', $this->options['block_non_latin'] ); ?> />
+						<span class="bws_info"><?php esc_html_e( 'Enable to restrict users from entering Cyrillic, Chinese, Japanese, and other non-Latin characters in form fields (subject, message)', 'contact-form-plugin' ); ?></span>
+					</td>
+				</tr>
+				<tr valign="top">
 					<th scope="row" style="width:200px;"><?php esc_html_e( 'Limit for Message field', 'contact-form-plugin' ); ?></th>
 					<td colspan="2">
 						<label><input type="checkbox" id="cntctfrm_message_limit" name="cntctfrm_message_limit" value="1" <?php checked( isset( $this->options['message_limit'] ) && 1 === $this->options['message_limit'] ); ?> /> <?php esc_html_e( 'Min / Max symbols in the message', 'contact-form-plugin' ); ?></label><br /><br />
@@ -1485,6 +1496,7 @@ if ( ! class_exists( 'Cntctfrm_Settings_Tabs' ) ) {
 								<input type="text" maxlength="250" name="cntctfrm_captcha_error[default]" value="<?php echo esc_html( $this->options['captcha_error']['default'] ); ?>" /> <span class="bws_info"><?php esc_html_e( 'Error message for the Captcha field', 'contact-form-plugin' ); ?></span><br />
 								<input type="text" maxlength="250" name="cntctfrm_dropdown_error[default]" value="<?php echo esc_html( $this->options['dropdown_error']['default'] ); ?>" /> <span class="bws_info"><?php esc_html_e( 'Error message for the Dropdown field', 'contact-form-plugin' ); ?></span><br />
 								<input type="text" maxlength="250" name="cntctfrm_esign_error[default]" value="<?php echo esc_html( $this->options['esign_error']['default'] ); ?>" /> <span class="bws_info"><?php esc_html_e( 'Error message for the E-sign field', 'contact-form-plugin' ); ?></span><br />
+								<input type="text" maxlength="250" name="cntctfrm_non_latin_error[default]" value="<?php echo esc_html( $this->options['non_latin_error']['default'] ); ?>" /> <span class="bws_info"><?php esc_html_e( 'Error message when were non-latin characters discovered in Subject or Message fields', 'contact-form-plugin' ); ?></span><br />
 								<input type="text" maxlength="250" name="cntctfrm_form_error[default]" value="<?php echo esc_html( $this->options['form_error']['default'] ); ?>" /> <span class="bws_info"><?php esc_html_e( 'Error message for the whole form', 'contact-form-plugin' ); ?></span><br />
 							</div>
 							<?php if ( ! $contact_form_multi_active ) { ?>
@@ -1533,6 +1545,7 @@ if ( ! class_exists( 'Cntctfrm_Settings_Tabs' ) ) {
 										<input type="text" maxlength="250" name="cntctfrm_captcha_error[<?php echo esc_attr( $val ); ?>]" value="<?php echo isset( $this->options['captcha_error'][ $val ] ) ? esc_html( $this->options['captcha_error'][ $val ] ) : ''; ?>" /> <span class="bws_info"><?php esc_html_e( 'Error message for the Captcha field', 'contact-form-plugin' ); ?></span><br />
 										<input type="text" maxlength="250" name="cntctfrm_dropdown_error[<?php echo esc_attr( $val ); ?>]" value="<?php echo isset( $this->options['dropdown_error'][ $val ] ) ? esc_html( $this->options['dropdown_error'][ $val ] ) : ''; ?>" /> <span class="bws_info"><?php esc_html_e( 'Error message for the Dropdown field', 'contact-form-plugin' ); ?></span><br />
 										<input type="text" maxlength="250" name="cntctfrm_esign_error[<?php echo esc_attr( $val ); ?>]" value="<?php echo isset( $this->options['esign_error'][ $val ] ) ? esc_html( $this->options['esign_error'][ $val ] ) : ''; ?>" /> <span class="bws_info"><?php esc_html_e( 'Error message for the E-sign field', 'contact-form-plugin' ); ?></span><br />
+										<input type="text" maxlength="250" name="cntctfrm_non_latin_error[<?php echo esc_attr( $val ); ?>]" value="<?php echo isset( $this->options['non_latin_error'][ $val ] ) ? esc_html( $this->options['non_latin_error'][ $val ] ) : ''; ?>" /> <span class="bws_info"><?php esc_html_e( 'Error message when were non-latin characters discovered in Subject or Message fields', 'contact-form-plugin' ); ?></span><br />
 										<input type="text" maxlength="250" name="cntctfrm_form_error[<?php echo esc_attr( $val ); ?>]" value="<?php echo isset( $this->options['form_error'][ $val ] ) ? esc_html( $this->options['form_error'][ $val ] ) : ''; ?>" /> <span class="bws_info"><?php esc_html_e( 'Error message for the whole form', 'contact-form-plugin' ); ?></span><br />
 									</div>
 									<?php if ( ! $contact_form_multi_active ) { ?>

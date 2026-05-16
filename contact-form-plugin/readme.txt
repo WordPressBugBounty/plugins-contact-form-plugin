@@ -3,8 +3,8 @@ Contributors: bestwebsoft
 Donate link: https://bestwebsoft.com/donate/
 Tags: wp contact form, contact widget, shortcode contact form, contact button, contact page
 Requires at least: 6.5
-Tested up to: 6.9
-Stable tag: 4.3.7
+Tested up to: 7.0
+Stable tag: 4.3.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -92,6 +92,7 @@ https://www.youtube.com/watch?v=F_piQa0hmkU
 * Global Support - Multi-language and RTL ready
 * Send test email
 * Use Gutenberg block
+* Block Non-Latin Characters
 
 > **Pro Features**
 >
@@ -332,6 +333,10 @@ Please make sure that the problem hasn't been discussed yet on our forum (<https
 16. Enable the file multiattachment option to get important files from senders via contact form.
 
 == Changelog ==
+
+= V4.3.9 - 16.05.2026 =
+* Update : All functionality was updated for WordPress 7.0.
+* NEW : Block Non-Latin Characters functionality has been added.
 
 = V4.3.7 - 19.03.2026 =
 * Update : All functionality was updated for WordPress 6.9.1.
@@ -757,7 +762,11 @@ Please make sure that the problem hasn't been discussed yet on our forum (<https
 
 == Upgrade Notice ==
 
-= V4.3.6 =
+= V4.3.9 =
+* The compatibility with new WordPress version updated.
+* New features added.
+
+= V4.3.7 =
 * The compatibility with new WordPress version updated.
 * New features added.
 * Bugs fixed.
