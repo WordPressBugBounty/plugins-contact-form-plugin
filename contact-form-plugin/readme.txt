@@ -3,8 +3,8 @@ Contributors: bestwebsoft
 Donate link: https://bestwebsoft.com/donate/
 Tags: wp contact form, contact widget, shortcode contact form, contact button, contact page
 Requires at least: 6.5
-Tested up to: 7.0
-Stable tag: 4.3.9
+Tested up to: 7.1.4
+Stable tag: 4.4.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -333,6 +333,10 @@ Please make sure that the problem hasn't been discussed yet on our forum (<https
 16. Enable the file multiattachment option to get important files from senders via contact form.
 
 == Changelog ==
+
+= V4.4.0 - 16.11.2026 =
+* Update : All functionality was updated for WordPress 7.1.4.
+* Bugfix : Fixed unauthenticated deletion of existing media files.
 
 = V4.3.9 - 16.05.2026 =
 * Update : All functionality was updated for WordPress 7.0.
@@ -761,6 +765,10 @@ Please make sure that the problem hasn't been discussed yet on our forum (<https
 * NEW : You can use JavaScript for the form validation with highlighting option
 
 == Upgrade Notice ==
+
+= V4.4.0 =
+* The compatibility with new WordPress version updated.
+* Bugs fixed.
 
 = V4.3.9 =
 * The compatibility with new WordPress version updated.

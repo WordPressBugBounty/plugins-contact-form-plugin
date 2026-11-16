@@ -854,7 +854,7 @@ if ( ! class_exists( 'Cntctfrm_Settings_Tabs' ) ) {
 						<td><?php esc_html_e( 'Address', 'contact-form-plugin' ); ?></td>
 						<td>
 							<label><input <?php do_action( 'cntctfrm_add_class_checkbox_disabled_row' ); ?> type="checkbox" id="cntctfrm_display_address_field" name="cntctfrm_display_address_field" value="1" <?php checked( '1', $this->options['display_address_field'] ); ?> />
-							<span class="cntctfrm_mobile_title"><?php esc_html_e( 'Used', 'contact-form-plus' ); ?></span></label>
+							<span class="cntctfrm_mobile_title"><?php esc_html_e( 'Used', 'contact-form-plugin' ); ?></span></label>
 						</td>
 						<td>
 							<label><input type="checkbox" id="cntctfrm_required_address_field" name="cntctfrm_required_address_field" value="1" <?php checked( '1', $this->options['required_address_field'] ); ?> />

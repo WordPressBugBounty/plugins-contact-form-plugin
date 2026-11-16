@@ -6,7 +6,7 @@ Description: Simple contact form plugin any WordPress website must have.
 Author: BestWebSoft
 Text Domain: contact-form-plugin
 Domain Path: /languages
-Version: 4.3.9
+Version: 4.4.0
 Author URI: https://bestwebsoft.com/
 License: GPLv2 or later
  */
@@ -1236,7 +1236,7 @@ if ( ! function_exists( 'cntctfrm_display_form' ) ) {
 							}
 							$pattern .= ']){2,}';
 							$content .= '<div class="cntctfrm_input cntctfrm_input_subject">
-								<input ' . apply_filters( 'cntctfrm_readonly', 'subject' ) . ' pattern="' . $pattern . '" title="' . sprintf( __( 'Please enter only %s at least 3 characters, words seperated by spaces', 'contact-form-plugin' ), $pattern_text ) . '" class="text" type="text" size="40" value="' . esc_html( $subject ) . '" name="cntctfrm_contact_subject" id="cntctfrm_contact_subject' . $form_countid . '" />';
+								<input ' . apply_filters( 'cntctfrm_readonly', 'subject' ) . ' pattern="' . $pattern . '" title="' . sprintf( esc_html__( 'Please enter only %s at least 3 characters, words seperated by spaces', 'contact-form-plugin' ), $pattern_text ) . '" class="text" type="text" size="40" value="' . esc_html( $subject ) . '" name="cntctfrm_contact_subject" id="cntctfrm_contact_subject' . $form_countid . '" />';
 							$content .= '</div>';
 							$content .= '</div>';
 							break;
@@ -1296,6 +1296,7 @@ if ( ! function_exists( 'cntctfrm_display_form' ) ) {
 								$content .= '<div class="cntctfrm_field_wrap cntctfrm_field_attachment_wrap">';
 								$content .= '<div class="cntctfrm_checkbox cntctfrm_checkbox_send_copy">
 									<input type="checkbox" value="1" name="cntctfrm_contact_send_copy" id="cntctfrm_contact_send_copy"' . ( 1 === absint( $send_copy ) ? ' checked="checked" ' : '' ) . ' />
+									' . wp_nonce_field( 'cntctfrm_contact_send_copy' ) . '
 									<label for="cntctfrm_contact_send_copy">' . $cntctfrm_options['send_copy_label'][ $lang ] . '</label>';
 								$content .= '</div>';
 								$content .= '</div>';
@@ -1546,7 +1547,7 @@ if ( ! function_exists( 'cntctfrm_check_and_send' ) ) {
 			if ( true === $cntctfrm_result ) {
 				setcookie( 'cntctfrm_send_mail', true, time() + 60, COOKIEPATH, COOKIE_DOMAIN );
 				if ( 0 === absint( $cntctfrm_options['action_after_send'] ) ) {
-					wp_redirect( $cntctfrm_options['redirect_url'] );
+					wp_safe_redirect( $cntctfrm_options['redirect_url'] );
 					exit;
 				}
 			}
@@ -1749,10 +1750,10 @@ if ( ! function_exists( 'cntctfrm_check_form' ) ) {
 
 				if ( $cntctfrm_options['active_multi_attachment'] && isset( $_FILES['cntctfrm_contact_attachment']['name'][ $i ] ) ) {
 					$contact_attachment_name = sanitize_file_name( wp_unslash( $_FILES['cntctfrm_contact_attachment']['name'][ $i ] ) );
-					$new_filename = 'cntctfrm_' . md5( $contact_attachment_name . time() . $email . mt_rand() ) . '_' . $contact_attachment_name;
+					$new_filename = 'cntctfrm_' . md5( $contact_attachment_name . time() . $email . wp_rand() ) . '_' . $contact_attachment_name;
 				} else {
 					$contact_attachment_name = sanitize_file_name( wp_unslash( $_FILES['cntctfrm_contact_attachment']['name'] ) );
-					$new_filename = 'cntctfrm_' . md5( $contact_attachment_name . time() . $email . mt_rand() ) . '_' . $contact_attachment_name;
+					$new_filename = 'cntctfrm_' . md5( $contact_attachment_name . time() . $email . wp_rand() ) . '_' . $contact_attachment_name;
 				}
 				if ( is_multisite() ) {
 					if ( defined( 'UPLOADS' ) ) {
@@ -2137,6 +2138,7 @@ if ( ! function_exists( 'cntctfrm_send_mail' ) ) {
 				require_once ABSPATH . 'wp-admin/includes/plugin.php';
 			}
 
+
 			/* 'from' name */
 			$from_field_name = ( 'custom' === $cntctfrm_options['select_from_field'] ) ? wp_unslash( $cntctfrm_options['from_field'] ) : $name;
 			/* 'from' email */
@@ -2162,26 +2164,10 @@ if ( ! function_exists( 'cntctfrm_send_mail' ) ) {
 
 				if ( 1 === absint( $cntctfrm_options['attachment'] ) && ! empty( $_FILES['cntctfrm_contact_attachment']['tmp_name'] ) && array( '' ) !== $_FILES['cntctfrm_contact_attachment']['tmp_name'] ) {
 					if ( empty( $cntctfrm_path_of_uploaded_files ) || ! is_array( $cntctfrm_path_of_uploaded_files ) || count( $cntctfrm_path_of_uploaded_files ) <= 1 ) {
-						$path_parts                             = pathinfo( $cntctfrm_path_of_uploaded_file );
-						$cntctfrm_path_of_uploaded_file_changed = $path_parts['dirname'] . '/' . preg_replace( '/^cntctfrm_[A-Z,a-z,0-9]{32}_/i', '', $path_parts['basename'] );
-
-						if ( ! @copy( $cntctfrm_path_of_uploaded_file, $cntctfrm_path_of_uploaded_file_changed ) ) {
-							$cntctfrm_path_of_uploaded_file_changed = $cntctfrm_path_of_uploaded_file;
-						}
-
-						$attachments = array( $cntctfrm_path_of_uploaded_file_changed );
+						$attachments = array( $cntctfrm_path_of_uploaded_file );
 					} else {
-						/* Multiple files */
-						$attachments = array();
 						foreach ( $cntctfrm_path_of_uploaded_files as $cntctfrm_path_of_uploaded_file ) {
-							$path_parts                             = pathinfo( $cntctfrm_path_of_uploaded_file );
-							$cntctfrm_path_of_uploaded_file_changed = $path_parts['dirname'] . '/' . preg_replace( '/^cntctfrm_[A-Z,a-z,0-9]{32}_/i', '', $path_parts['basename'] );
-
-							if ( ! @copy( $cntctfrm_path_of_uploaded_file, $cntctfrm_path_of_uploaded_file_changed ) ) {
-								$cntctfrm_path_of_uploaded_file_changed = $cntctfrm_path_of_uploaded_file;
-							}
-
-							$attachments[] = $cntctfrm_path_of_uploaded_file_changed;
+							$attachments[] = $cntctfrm_path_of_uploaded_file;
 						}
 					}
 				}
@@ -2213,7 +2199,7 @@ if ( ! function_exists( 'cntctfrm_send_mail' ) ) {
 					});
 				}
 
-				if ( isset( $_POST['cntctfrm_contact_send_copy'] ) && 1 === absint( $_POST['cntctfrm_contact_send_copy'] ) ) {
+				if ( 1 === absint( $cntctfrm_options['send_copy'] ) && isset( $_POST['cntctfrm_contact_send_copy'] ) && 1 === absint( $_POST['cntctfrm_contact_send_copy'] ) && isset( $_POST['_wpnonce'] ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'cntctfrm_contact_send_copy' ) ) {
 					wp_mail( $email, $subject, $message_text_for_user, $headers, $attachments );
 				}
 
@@ -2223,19 +2209,21 @@ if ( ! function_exists( 'cntctfrm_send_mail' ) ) {
 				if ( 1 === absint( $cntctfrm_options['display_esign'] ) ) {
 					foreach ( $attachments_new as $attachment ) {
 						if ( file_exists( $attachment['name'] ) ) {
-							unlink( $attachment['name'] );
+							wp_delete_file( $attachment['name'] );
 						}
 					}
 					$attachments_new = NULL;
 				}
 
 				/* Delete attachment */
-				if ( 1 === absint( $cntctfrm_options['attachment'] ) && ! empty( $_FILES['cntctfrm_contact_attachment']['tmp_name'] ) && array( '' ) !== $_FILES['cntctfrm_contact_attachment']['tmp_name']
-					&& $cntctfrm_path_of_uploaded_file_changed !== $cntctfrm_path_of_uploaded_file ) {
-					@unlink( $cntctfrm_path_of_uploaded_file_changed );
-				}
 				if ( 1 === absint( $cntctfrm_options['attachment'] ) && ! empty( $_FILES['cntctfrm_contact_attachment']['tmp_name'] ) && array( '' ) !== $_FILES['cntctfrm_contact_attachment']['tmp_name'] && 1 === absint( $cntctfrm_options['delete_attached_file'] ) ) {
-					@unlink( $cntctfrm_path_of_uploaded_file );
+					$admin_email = get_bloginfo( 'admin_email' );
+					$action      = 'remove_attachments_' . $to . '_' . $admin_email;
+					$i           = wp_nonce_tick( $action );
+					$nonce       = substr( wp_hash( $i . '|' . $action, 'nonce' ), -12, 10 );
+					$args        = array ( $attachments, $nonce );
+
+					$result = wp_schedule_single_event( time() + 120, 'cntctfrm_remove_attachments_action', $args );
 				}
 				return $mail_result;
 			} else {
@@ -2243,7 +2231,6 @@ if ( ! function_exists( 'cntctfrm_send_mail' ) ) {
 				$headers .= 'MIME-Version: 1.0' . "\r\n";
 
 				if ( ( 1 === absint( $cntctfrm_options['attachment'] ) && ! empty( $_FILES['cntctfrm_contact_attachment']['tmp_name'] ) && array( '' ) !== $_FILES['cntctfrm_contact_attachment']['tmp_name'] ) || 1 === absint( $cntctfrm_options['display_esign'] ) ) {
-					error_log( print_r( 'display_esign', true ) . PHP_EOL, 3, dirname( __FILE__ ) . '/error.log' );
 					$message_block          = $message_text;
 					$message_block_for_user = $message_text_for_user;
 
@@ -2273,37 +2260,33 @@ if ( ! function_exists( 'cntctfrm_send_mail' ) ) {
 					if ( 1 === absint( $cntctfrm_options['display_esign'] ) ) {
 						$file_name   = 'sign.png';
 						$file        = str_replace( 'data:image/png;base64,', '', $esign );
-						//$file     = str_replace( ' ', '+', $file );
-						//$decoded = base64_decode( $file );
 
 						$message_text          .= $bound . "\r\n" .
 							"Content-Type: image/png;\r\n" .
 							"Content-Disposition: inline; filename='sign.png'\r\n" .
-							//"Content-Location: sign.png\r\n" .
 							"Content-ID: <cntctfrm_sign>;\r\n" .
 							"Content-Transfer-Encoding: base64\r\n\r\n" . $file . "\r\n\r\n";
 						$message_text_for_user .= $bound . "\r\n" .
 							"Content-Type: image/png;\r\n" .
 							"Content-Disposition: inline; filename='sign.png'\r\n" .
-							//"Content-Location: sign.png\r\n" .
 							"Content-ID: <cntctfrm_sign>;\r\n" .
 							"Content-Transfer-Encoding: base64\r\n\r\n" . $file . "\r\n\r\n";
 					}
 					if ( 1 === absint( $cntctfrm_options['attachment'] ) && ! empty( $_FILES['cntctfrm_contact_attachment']['tmp_name'] ) ) { 
 						$num_files = count( (array) $_FILES['cntctfrm_contact_attachment']['tmp_name'] );
 						for ( $i = 0; $i < $num_files; $i++ ) {
-							global $cntctfrm_path_of_uploaded_file, $cntctfrm_path_of_uploaded_files;
-
 							if ( $cntctfrm_options['active_multi_attachment'] ) {
 								$file_name   = sanitize_file_name( $_FILES['cntctfrm_contact_attachment']['name'][ $i ] );
 								$file        = file_get_contents( $cntctfrm_path_of_uploaded_files[ $i ] );
 								$file_size   = filesize( $cntctfrm_path_of_uploaded_files[ $i ] );
 								$description = basename( $cntctfrm_path_of_uploaded_files[ $i ] );
+								$attachments[] = $cntctfrm_path_of_uploaded_files[ $i ];
 							} else {
 								$file_name   = sanitize_file_name( $_FILES['cntctfrm_contact_attachment']['name'] );
 								$file        = file_get_contents( $cntctfrm_path_of_uploaded_file );
 								$file_size   = filesize( $cntctfrm_path_of_uploaded_file );
 								$description = basename( $cntctfrm_path_of_uploaded_file );
+								$attachments = array( $cntctfrm_path_of_uploaded_file );
 							}
 							$message_text          .= $bound . "\r\n" .
 								'Content-Type: application/octet-stream; name="' . $file_name . "\"\r\n" .
@@ -2320,7 +2303,6 @@ if ( ! function_exists( 'cntctfrm_send_mail' ) ) {
 					$message_text          .= $bound_last;
 					$message_text_for_user .= $bound_last;
 
-					error_log( print_r( $message_text, true ) . PHP_EOL, 3, dirname( __FILE__ ) . '/error.log' );
 
 				} else {
 					/* To send HTML mail, header must be set */
@@ -2333,19 +2315,69 @@ if ( ! function_exists( 'cntctfrm_send_mail' ) ) {
 					/* Additional headers */
 					$headers .= 'From: ' . $from_field_name . ' <' . $from_email . '>' . "\r\n";
 				}
-				if ( isset( $_POST['cntctfrm_contact_send_copy'] ) && 1 === absint( $_POST['cntctfrm_contact_send_copy'] ) ) {
+				if ( 1 === absint( $cntctfrm_options['send_copy'] ) && isset( $_POST['cntctfrm_contact_send_copy'] ) && 1 === absint( $_POST['cntctfrm_contact_send_copy'] ) && isset( $_POST['_wpnonce'] ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'cntctfrm_contact_send_copy' ) ) {
 					@mail( $email, $subject, $message_text_for_user, $headers );
 				}
 
 				$mail_result = @mail( $to, $subject, $message_text, $headers );
 				/* Delete attachment */
 				if ( 1 === absint( $cntctfrm_options['attachment'] ) && ! empty( $_FILES['cntctfrm_contact_attachment']['tmp_name'] ) && array( '' ) !== $_FILES['cntctfrm_contact_attachment']['tmp_name'] && 1 === absint( $cntctfrm_options['delete_attached_file'] ) ) {
-					@unlink( $cntctfrm_path_of_uploaded_file );
+					$admin_email = get_bloginfo( 'admin_email' );
+					$action      = 'remove_attachments_' . $to . '_' . $admin_email;
+					$i           = wp_nonce_tick( $action );
+					$nonce       = substr( wp_hash( $i . '|' . $action, 'nonce' ), -12, 10 );
+					$args        = array ( $attachments, $nonce );
+
+					$result = wp_schedule_single_event( time() + 120, 'cntctfrm_remove_attachments_action', $args );
 				}
 				return $mail_result;
 			}
 		}
 		return false;
+	}
+}
+
+if ( ! function_exists( 'cntctfrm_remove_attachments' ) ) {
+	/**
+	 * Add action links
+	 *
+	 * @param   array $links   Action link array.
+	 * @param   file  $file    Plugin file.
+	 * @return  array    $links   Returned link array.
+	 */
+	function cntctfrm_remove_attachments( $attachments, $wp_nonce ) {
+		global $cntctfrm_options;
+		if ( empty( $cntctfrm_options ) ) {
+			$cntctfrm_options = get_option( 'cntctfrm_options' );
+		}
+
+		if ( 1 === absint( $cntctfrm_options['delete_attached_file'] ) ) {
+			if ( 'user' === $cntctfrm_options['select_email'] ) {
+				if ( false !== $user = get_user_by( 'login', $cntctfrm_options['user_email'] ) ) {
+					$to = $user->user_email;
+				}
+			} elseif ( 'custom' === $cntctfrm_options['select_email'] ) {
+				$to = $cntctfrm_options['custom_email'];
+			}
+
+			/* If email options are not certain choose admin email */
+			if ( '' === $to ) {
+				$to = get_option( 'admin_email' );
+			}
+
+			$admin_email = get_bloginfo( 'admin_email' );
+			$action      = 'remove_attachments_' . $to . '_' . $admin_email;
+			$i           = wp_nonce_tick( $action );
+			$nonce       = substr( wp_hash( $i . '|' . $action, 'nonce' ), -12, 10 );
+
+			if ( true === hash_equals( $wp_nonce, $nonce ) ) {
+				foreach ( $attachments as $attachment ) {
+					if ( file_exists( $attachment ) ) {
+						wp_delete_file( $attachment );
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -2534,7 +2566,7 @@ if ( ! function_exists( 'cntctfrm_wp_footer' ) ) {
 			if ( 0 === $cntctfrm_options['popup_timer'] || true === $cntctfrm_result || false === $cntctfrm_result ) {
 				$display = '';
 			}
-			echo '<div class="cntctfrm-popup-overflow"' . $display . '><div class="cntctfrm-popup-wrapper">' . cntctfrm_display_form() . '<div class="cntctfrm-popup-close"><svg class="ays_pb_material_close_icon" xmlns="https://www.w3.org/2000/svg" height="36px" viewBox="0 0 24 24" width="36px" fill="#000000" alt="Pop-up Close"><path d="M0 0h24v24H0z" fill="none"></path><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg></div></div></div>';
+			echo '<div class="cntctfrm-popup-overflow"' . esc_html( $display ) . '><div class="cntctfrm-popup-wrapper">' . cntctfrm_display_form() . '<div class="cntctfrm-popup-close"><svg class="ays_pb_material_close_icon" xmlns="https://www.w3.org/2000/svg" height="36px" viewBox="0 0 24 24" width="36px" fill="#000000" alt="Pop-up Close"><path d="M0 0h24v24H0z" fill="none"></path><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg></div></div></div>';
 		}
 
 		if ( wp_script_is( 'cntctfrm_frontend_script', 'registered' ) ) {
@@ -3038,5 +3070,7 @@ add_filter( 'widget_text', 'do_shortcode' );
 add_filter( 'bws_shortcode_button_content', 'cntctfrm_shortcode_button_content' );
 add_action( 'wp_ajax_cntctfrm_add_language', 'cntctfrm_add_language' );
 add_action( 'wp_ajax_cntctfrm_remove_language', 'cntctfrm_remove_language' );
+
+add_action( 'cntctfrm_remove_attachments_action', 'cntctfrm_remove_attachments', 1, 2 );
 
 add_action( 'admin_notices', 'cntctfrm_plugin_banner' );
