@@ -1208,7 +1208,7 @@ if ( ! class_exists( 'Cntctfrm_Settings_Tabs' ) ) {
 						<div>
 							<label>
 								<input type="checkbox" id="cntctfrm_send_copy" name="cntctfrm_send_copy" value="1" <?php checked( '1', $this->options['send_copy'] ); ?> />
-								<?php esc_html_e( "'Send me a copy' block", 'contact-form-plugin' ); ?>
+								<?php esc_html_e( "'Send me a copy' block (for registered users only )", 'contact-form-plugin' ); ?>
 							</label>
 							<?php echo wp_kses_post( bws_add_help_box( '<img src="' . esc_url( plugins_url( '../images/tooltip_sendme_block.png', __FILE__ ) ) . '" />', 'bws-hide-for-mobile bws-auto-width' ) ); ?>
 						</div>

@@ -6,7 +6,7 @@ Description: Simple contact form plugin any WordPress website must have.
 Author: BestWebSoft
 Text Domain: contact-form-plugin
 Domain Path: /languages
-Version: 4.4.0
+Version: 4.4.1
 Author URI: https://bestwebsoft.com/
 License: GPLv2 or later
  */
@@ -1292,7 +1292,7 @@ if ( ! function_exists( 'cntctfrm_display_form' ) ) {
 							}
 							break;
 						case 'cntctfrm_contact_send_copy':
-							if ( 1 === absint( $cntctfrm_options['send_copy'] ) ) {
+							if ( 1 === absint( $cntctfrm_options['send_copy'] ) && is_user_logged_in() ) {
 								$content .= '<div class="cntctfrm_field_wrap cntctfrm_field_attachment_wrap">';
 								$content .= '<div class="cntctfrm_checkbox cntctfrm_checkbox_send_copy">
 									<input type="checkbox" value="1" name="cntctfrm_contact_send_copy" id="cntctfrm_contact_send_copy"' . ( 1 === absint( $send_copy ) ? ' checked="checked" ' : '' ) . ' />
@@ -2138,7 +2138,6 @@ if ( ! function_exists( 'cntctfrm_send_mail' ) ) {
 				require_once ABSPATH . 'wp-admin/includes/plugin.php';
 			}
 
-
 			/* 'from' name */
 			$from_field_name = ( 'custom' === $cntctfrm_options['select_from_field'] ) ? wp_unslash( $cntctfrm_options['from_field'] ) : $name;
 			/* 'from' email */
@@ -2199,8 +2198,11 @@ if ( ! function_exists( 'cntctfrm_send_mail' ) ) {
 					});
 				}
 
-				if ( 1 === absint( $cntctfrm_options['send_copy'] ) && isset( $_POST['cntctfrm_contact_send_copy'] ) && 1 === absint( $_POST['cntctfrm_contact_send_copy'] ) && isset( $_POST['_wpnonce'] ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'cntctfrm_contact_send_copy' ) ) {
-					wp_mail( $email, $subject, $message_text_for_user, $headers, $attachments );
+				if ( 1 === absint( $cntctfrm_options['send_copy'] ) && isset( $_POST['cntctfrm_contact_send_copy'] ) && 1 === absint( $_POST['cntctfrm_contact_send_copy'] ) && isset( $_POST['_wpnonce'] ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'cntctfrm_contact_send_copy' ) && is_user_logged_in() ) {
+					$current_user = wp_get_current_user();
+					if ( ! empty( $current_user ) && isset( $current_user->user_email ) ) {
+						wp_mail( $current_user->user_email, $subject, $message_text_for_user, $headers, $attachments );
+					}
 				}
 
 				/* Mail it */
@@ -2315,8 +2317,11 @@ if ( ! function_exists( 'cntctfrm_send_mail' ) ) {
 					/* Additional headers */
 					$headers .= 'From: ' . $from_field_name . ' <' . $from_email . '>' . "\r\n";
 				}
-				if ( 1 === absint( $cntctfrm_options['send_copy'] ) && isset( $_POST['cntctfrm_contact_send_copy'] ) && 1 === absint( $_POST['cntctfrm_contact_send_copy'] ) && isset( $_POST['_wpnonce'] ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'cntctfrm_contact_send_copy' ) ) {
-					@mail( $email, $subject, $message_text_for_user, $headers );
+				if ( 1 === absint( $cntctfrm_options['send_copy'] ) && isset( $_POST['cntctfrm_contact_send_copy'] ) && 1 === absint( $_POST['cntctfrm_contact_send_copy'] ) && isset( $_POST['_wpnonce'] ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'cntctfrm_contact_send_copy' ) && is_user_logged_in() ) {
+					$current_user = wp_get_current_user();
+					if ( ! empty( $current_user ) && isset( $current_user->user_email ) ) {
+						@mail( $email, $subject, $message_text_for_user, $headers );
+					}
 				}
 
 				$mail_result = @mail( $to, $subject, $message_text, $headers );
